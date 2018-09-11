@@ -195,5 +195,6 @@ class InstallCommand extends Command
 
         $this->laravel['files']->put($file, json_encode($composer_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         $this->line('<info>Infyom Generator added to composer.json:</info> '.str_replace(base_path(), '', $file));
+        $this->line('<info>Please run</info> composer update <info>to install Infyom Generator.</info>');
     }
 }
