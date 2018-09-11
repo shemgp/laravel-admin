@@ -144,8 +144,10 @@ class Actions extends AbstractDisplayer
      */
     protected function renderView()
     {
+        $base = app_url();
+
         return <<<EOT
-<a href="{$this->getResource()}/{$this->getKey()}">
+<a href="{$base}{$this->getResource()}/{$this->getKey()}">
     <i class="fa fa-eye"></i>
 </a>
 EOT;
@@ -158,8 +160,10 @@ EOT;
      */
     protected function renderEdit()
     {
+        $base = app_url();
+
         return <<<EOT
-<a href="{$this->getResource()}/{$this->getKey()}/edit">
+<a href="{$base}{$this->getResource()}/{$this->getKey()}/edit">
     <i class="fa fa-edit"></i>
 </a>
 EOT;
@@ -176,60 +180,59 @@ EOT;
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
+        $base = app_url();
+
         $script = <<<SCRIPT
 
-$('.{$this->grid->getGridRowName()}-delete').unbind('click').unbind('submit').on('click submit', function() {
+$('.{$this->grid->getGridRowName()}-delete').unbind('click').click(function() {
 
     var id = $(this).data('id');
 
     swal({
-      title: "$deleteConfirm",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "$confirm",
-      closeOnConfirm: false,
-      cancelButtonText: "$cancel"
-    },
-    function(){
-        $.ajax({
-            method: 'post',
-            url: '{$this->getResource()}/' + id,
-            data: {
-                _method:'delete',
-                _token:LA.token,
-            },
-            success: function (data) {
-                $.pjax.reload('#pjax-container');
+        title: "$deleteConfirm",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "$confirm",
+        showLoaderOnConfirm: true,
+        cancelButtonText: "$cancel",
+        preConfirm: function() {
+            return new Promise(function(resolve) {
+                $.ajax({
+                    method: 'post',
+                    url: '{$base}{$this->getResource()}/' + id,
+                    data: {
+                        _method:'delete',
+                        _token:LA.token,
+                    },
+                    success: function (data) {
+                        $.pjax.reload('#pjax-container');
 
-                if (typeof data === 'object') {
-                    if (data.status) {
-                        swal(data.message, '', 'success');
-                    } else {
-                        swal(data.message, '', 'error');
+                        resolve(data);
                     }
-                }
+                });
+            });
+        }
+    }).then(function(result) {
+        var data = result.value;
+        if (typeof data === 'object') {
+            if (data.status) {
+                swal(data.message, '', 'success');
+            } else {
+                swal(data.message, '', 'error');
             }
-        });
+        }
     });
-
-    return false;
 });
 
 SCRIPT;
 
         Admin::script($script);
-        $csrf = csrf_token();
 
         return <<<EOT
-<form action="{$this->getResource()}/{$this->getKey()}" method="post" style="display: inline;" data-id="{$this->getKey()}" class="{$this->grid->getGridRowName()}-delete">
-    <input type="hidden" name="_token" value="{$csrf}" />
-    <input type="hidden" name="_method" value="delete" />
-    <input type="hidden" name="_type" value="non-ajax" />
-    <a href="#">
-        <button style="padding: 0px; margin: 0px; border: 0px; background: transparent; display: inline-block;"><i class="fa fa-trash"></i></button>
-    </a>
-</form>
+<a href="javascript:void(0);" data-id="{$this->getKey()}" class="{$this->grid->getGridRowName()}-delete">
+    <i class="fa fa-trash"></i>
+</a>
 EOT;
     }
 }

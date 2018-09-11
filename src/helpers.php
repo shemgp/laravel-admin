@@ -55,6 +55,33 @@ if (!function_exists('admin_base_path')) {
 
         return $prefix.'/'.trim($path, '/');
     }
+
+    function app_url()
+    {
+        $app_url = config('app.url');
+
+        if (!isset($_SERVER['SERVER_PORT'])) {
+            return $app_url;
+        }
+
+        $parsed_url = parse_url($app_url);
+        if (!isset($parsed_url['port'])
+            && ($_SERVER['SERVER_PORT'] != ''
+                && $_SERVER['SERVER_PORT'] != 80
+                && $_SERVER['SERVER_PORT'] != 443)) {
+            $add_slash = '/';
+
+            preg_match('/([^\/:])(\/|$)(.*)/', $app_url, $matches);
+
+            if ($matches[3] == '') {
+                $add_slash = '';
+            }
+
+            $app_url = preg_replace('/([^\/:])(\/|$)/', '\1:'.$_SERVER['SERVER_PORT'].$add_slash, $app_url, 1);
+        }
+
+        return $app_url;
+    }
 }
 
 if (!function_exists('admin_toastr')) {
