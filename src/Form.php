@@ -707,7 +707,6 @@ class Form implements Renderable
                     }
                     break;
                 case Relations\HasOne::class:
-                case Relations\BelongsTo::class:
 
                     $related = $this->model->$name;
 
@@ -722,6 +721,29 @@ class Form implements Renderable
                     }
 
                     $related->save();
+                    break;
+                case Relations\BelongsTo::class:
+
+                    $parent = $this->model->$name;
+
+                    // if related is empty
+                    if (is_null($parent)) {
+                        $parent = $relation->getRelated();
+                    }
+
+                    foreach ($prepared[$name] as $column => $value) {
+                        $parent->setAttribute($column, $value);
+                    }
+
+                    $parent->save();
+
+                    // When in creating, associate two models
+                    if (! $this->model->{$relation->getForeignKey()}) {
+                        $this->model->{$relation->getForeignKey()} = $parent->getKey();
+
+                        $this->model->save();
+                    }
+
                     break;
                 case Relations\MorphOne::class:
                     $related = $this->model->$name;
@@ -1386,7 +1408,7 @@ class Form implements Renderable
      */
     public static function alias($field, $alias)
     {
-        static::$fieldAlias[$alias] =  $field;
+        static::$fieldAlias[$alias] = $field;
     }
 
     /**
