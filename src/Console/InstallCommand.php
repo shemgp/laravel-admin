@@ -79,6 +79,8 @@ class InstallCommand extends Command
 
         $this->createBootstrapFile();
         $this->createRoutesFile();
+
+        $this->addInfyomGenerator();
     }
 
     /**
@@ -163,5 +165,35 @@ class InstallCommand extends Command
     protected function makeDir($path = '')
     {
         $this->laravel['files']->makeDirectory("{$this->directory}/$path", 0755, true, true);
+    }
+
+    /**
+     * Add Infyom generators in composer file
+     */
+    protected function addInfyomGenerator()
+    {
+        $file = base_path('composer.json');
+        $composer_json = json_decode(file_get_contents($file), true);
+
+        $composer_json['require']['infyomlabs/laravel-generator'] = "dev-5.5-datagrid-bootform-patches";
+        $composer_json['require']['infyomlabs/adminlte-templates'] = "dev-5.5-datagrid-bootform-patches";
+
+        $composer_json['repositories']['laravel-generator'] = [
+                "type" => "vcs",
+                "url" => "https://github.com/shemgp/laravel-generator.git"
+            ];
+        $composer_json['repositories']['adminlte-templates'] = [
+                "type" => "vcs",
+                "url" => "https://github.com/shemgp/adminlte-templates.git"
+            ];
+        $composer_json['repositories']['datagrid'] = [
+                "type" => "vcs",
+                "url" => "https://github.com/shemgp/datagrid"
+            ];
+
+        $composer_json["minimum-stability"] = "dev";
+
+        $this->laravel['files']->put($file, json_encode($composer_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->line('<info>Infyom Generator added to composer.json:</info> '.str_replace(base_path(), '', $file));
     }
 }
