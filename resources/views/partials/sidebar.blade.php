@@ -30,6 +30,8 @@
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
             <li class="header">{{ trans('admin.menu') }}</li>
+            
+            @include('partials.local_menu')
 
             @each('admin::partials.menu', Admin::menu(), 'item')
 
