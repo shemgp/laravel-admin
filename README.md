@@ -63,20 +63,9 @@ Installation
 First, install laravel 5.5, and make sure that the database connection settings are correct.
 
 ```
-composer require encore/laravel-admin
+wget -O - https://raw.githubusercontent.com/shemgp/laravel-admin/changes/bin/init | php
 ```
-
-Then run these commands to publish assets and config：
-
-```
-php artisan vendor:publish --provider="Encore\Admin\AdminServiceProvider"
-```
-After run command you can find config file in `config/admin.php`, in this file you can change the install directory,db connection or table names.
-
-At last run following command to finish install.
-```
-php artisan admin:install
-```
+or download `https://raw.githubusercontent.com/shemgp/laravel-admin/changes/bin/init` and while in the laravel base path run it using php (eg. `php ~/Downloads/init`).
 
 Open `http://localhost/admin/` in browser,use username `admin` and password `admin` to login.
 
