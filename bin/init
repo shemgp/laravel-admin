@@ -5,7 +5,7 @@ $file = 'composer.json';
 
 if (!file_exists($file))
 {
-    echo "Can't find composer.json in current directory.";
+    echo "Can't find composer.json in current directory.\n";
     die();
 }
 
