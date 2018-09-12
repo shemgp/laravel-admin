@@ -5,11 +5,11 @@ $file = 'composer.json';
 
 if (!file_exists($file))
 {
-    echo "Can't find composer.json in current directory.\n";
+    echo "ERROR: Can't find composer.json in current directory.\n";
     die();
 }
 
-echo "Updating composer.json...";
+echo "Updating composer.json.. ";
 $composer_json = json_decode(file_get_contents($file), true);
 
 $composer_json['require']['encore/laravel-admin'] = "dev-changes";
@@ -40,18 +40,32 @@ $composer_json["minimum-stability"] = "dev";
 file_put_contents($file, json_encode($composer_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 echo "done\n";
 
-echo "Running composer update...\n";
+echo "Running composer update.. \n";
 shell_exec("composer update");
 echo "done\n";
 
-echo "Running configs...";
-shell_exec("php artisan vendor:publish -n");
-shell_exec("php artisan admin:install -n");
-shell_exec("php artisan infyom:publish -n");
-shell_exec("php artisan infyom.publish:layout -n");
+echo "Running configs.. ";
+
+$autoload_file = 'vendor/autoload.php';
+$bootstrap_file = 'bootstrap/app.php';
+if (!file_exists($autoload_file) && !file_exists($bootstrap_file))
+{
+    echo "ERROR: Can't find $autoload_file & $boostrap_file for running artisan commands.\n";
+    die();
+}
+require_once 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
+class_alias('Illuminate\Support\Facades\Facade', 'Facade');
+Facade::setFacadeApplication($app);
+class_alias('Illuminate\Support\Facades\Artisan', 'Artisan');
+Artisan::call('vendor:publish', ['--all' => 1]);
+Artisan::call('admin:install');
+Artisan::call("infyom:publish");
+Artisan::call("infyom.publish:layout");
+
 echo "done\n";
 
-echo "Changing default layout...";
+echo "Changing Infyom Generator's default layout.. ";
 $config_file = 'config/infyom/laravel_generator.php';
 $config = file_get_contents($config_file);
 $config = preg_replace('/\'default_layout\'.*=> \$package_view_name.\'[^\']*\',/',
