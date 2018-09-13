@@ -72,7 +72,8 @@ class AdminServiceProvider extends ServiceProvider
             $this->publishes([__DIR__.'/../resources/assets' => public_path('vendor/laravel-admin')], 'laravel-admin-assets');
 
             $this->publishes([__DIR__.'/../resources/views/partials/local_menu.blade.php' => resource_path('views/partials/local_menu.blade.php')], 'laravel-admin-local-menu');
-            $this->publishes([__DIR__.'/../resources/views/partials/local_menu_items.blade.php' => resource_path('views/layouts/menu.blade.php')], 'laravel-admin-local-menu-items');
+            if (!file_exists(resource_path('views/layouts/menu.blade.php')))
+                $this->publishes([__DIR__.'/../resources/views/partials/local_menu_items.blade.php' => resource_path('views/layouts/menu.blade.php')], 'laravel-admin-local-menu-items');
 
         }
 
