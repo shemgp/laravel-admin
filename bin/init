@@ -59,9 +59,9 @@ class_alias('Illuminate\Support\Facades\Facade', 'Facade');
 Facade::setFacadeApplication($app);
 class_alias('Illuminate\Support\Facades\Artisan', 'Artisan');
 Artisan::call('vendor:publish', ['--all' => 1]);
-Artisan::call('admin:install');
-Artisan::call("infyom:publish");
-Artisan::call("infyom.publish:layout");
+Artisan::call('admin:install', ['-n' => 1]);
+Artisan::call("infyom:publish", ['-n' => 1]);
+Artisan::call("infyom.publish:layout", ['-n' => 1]);
 
 echo "done\n";
 
