@@ -34,6 +34,10 @@ $composer_json['repositories']['datagrid'] = [
         "type" => "vcs",
         "url" => "https://github.com/shemgp/datagrid"
     ];
+$composer_json['repositories']['bootstrap-form'] = [
+        "type" => "vcs",
+        "url" => "https://github.com/shemgp/bootstrap-form.git"
+    ];
 
 $composer_json["minimum-stability"] = "dev";
 
