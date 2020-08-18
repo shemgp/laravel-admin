@@ -10,6 +10,7 @@ use Encore\Admin\Grid\Filter\Presenter\Presenter;
 use Encore\Admin\Grid\Filter\Presenter\Radio;
 use Encore\Admin\Grid\Filter\Presenter\Select;
 use Encore\Admin\Grid\Filter\Presenter\Text;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 /**
@@ -86,6 +87,11 @@ abstract class AbstractFilter
      * @var Collection
      */
     public $group;
+
+    /**
+     * @var bool
+     */
+    protected $ignore = false;
 
     /**
      * AbstractFilter constructor.
@@ -181,7 +187,7 @@ abstract class AbstractFilter
     public function siblings($index = null)
     {
         if (!is_null($index)) {
-            return array_get($this->parent->filters(), $index);
+            return Arr::get($this->parent->filters(), $index);
         }
 
         return $this->parent->filters();
@@ -224,7 +230,11 @@ abstract class AbstractFilter
      */
     public function condition($inputs)
     {
-        $value = array_get($inputs, $this->column);
+        if ($this->ignore) {
+            return;
+        }
+
+        $value = Arr::get($inputs, $this->column);
 
         if (!isset($value)) {
             return;
@@ -236,9 +246,21 @@ abstract class AbstractFilter
     }
 
     /**
+     * Ignore this query filter.
+     *
+     * @return $this
+     */
+    public function ignore()
+    {
+        $this->ignore = true;
+
+        return $this;
+    }
+
+    /**
      * Select filter.
      *
-     * @param array $options
+     * @param array|\Illuminate\Support\Collection $options
      *
      * @return Select
      */
@@ -248,7 +270,7 @@ abstract class AbstractFilter
     }
 
     /**
-     * @param array $options
+     * @param array|\Illuminate\Support\Collection $options
      *
      * @return MultipleSelect
      */
@@ -258,7 +280,7 @@ abstract class AbstractFilter
     }
 
     /**
-     * @param array $options
+     * @param array|\Illuminate\Support\Collection $options
      *
      * @return Radio
      */
@@ -268,7 +290,7 @@ abstract class AbstractFilter
     }
 
     /**
-     * @param array $options
+     * @param array|\Illuminate\Support\Collection $options
      *
      * @return Checkbox
      */
@@ -280,7 +302,7 @@ abstract class AbstractFilter
     /**
      * Datetime filter.
      *
-     * @param array $options
+     * @param array|\Illuminate\Support\Collection $options
      *
      * @return DateTime
      */
@@ -379,6 +401,11 @@ abstract class AbstractFilter
         return $this;
     }
 
+    public function getFilterBoxId()
+    {
+        return $this->parent ? $this->parent->getFilterID() : 'filter-box';
+    }
+
     /**
      * Get element id.
      *
@@ -410,9 +437,9 @@ abstract class AbstractFilter
      */
     public function getColumn()
     {
-        $parenName = $this->parent->getName();
+        $parentName = $this->parent->getName();
 
-        return $parenName ? "{$parenName}_{$this->column}" : $this->column;
+        return $parentName ? "{$parentName}_{$this->column}" : $this->column;
     }
 
     /**
@@ -450,7 +477,8 @@ abstract class AbstractFilter
     {
         $args = func_get_args();
 
-        list($relation, $args[0]) = explode('.', $this->column);
+        $relation = substr($this->column, 0, strrpos($this->column, '.'));
+        $args[0] = last(explode('.', $this->column));
 
         return ['whereHas' => [$relation, function ($relation) use ($args) {
             call_user_func_array([$relation, $this->query], $args);
@@ -466,6 +494,7 @@ abstract class AbstractFilter
     {
         return array_merge([
             'id'        => $this->id,
+            'column'    => $this->column,
             'name'      => $this->formatName($this->column),
             'label'     => $this->label,
             'value'     => $this->value ?: $this->defaultValue,

@@ -3,6 +3,7 @@
 namespace Encore\Admin\Form\Field;
 
 use Encore\Admin\Form\Field;
+use Illuminate\Support\Arr;
 
 class Html extends Field
 {
@@ -33,7 +34,7 @@ class Html extends Field
     {
         $this->html = $html;
 
-        $this->label = array_get($arguments, 0);
+        $this->label = Arr::get($arguments, 0);
     }
 
     /**
@@ -64,7 +65,7 @@ class Html extends Field
         $viewClass = $this->getViewElementClasses();
 
         return <<<EOT
-<div class="form-group">
+<div class="{$viewClass['form-group']}">
     <label  class="{$viewClass['label']} control-label">{$this->label}</label>
     <div class="{$viewClass['field']}">
         {$this->html}

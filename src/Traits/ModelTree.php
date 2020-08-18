@@ -2,7 +2,9 @@
 
 namespace Encore\Admin\Traits;
 
+use Encore\Admin\Tree;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 
@@ -194,7 +196,7 @@ trait ModelTree
      */
     protected static function setBranchOrder(array $order)
     {
-        static::$branchOrder = array_flip(array_flatten($order));
+        static::$branchOrder = array_flip(Arr::flatten($order));
 
         static::$branchOrder = array_map(function ($item) {
             return ++$item;
@@ -229,13 +231,16 @@ trait ModelTree
     /**
      * Get options for Select field in form.
      *
-     * @return \Illuminate\Support\Collection
+     * @param \Closure|null $closure
+     * @param string        $rootText
+     *
+     * @return array
      */
-    public static function selectOptions()
+    public static function selectOptions(\Closure $closure = null, $rootText = 'ROOT')
     {
-        $options = (new static())->buildSelectOptions();
+        $options = (new static())->withQuery($closure)->buildSelectOptions();
 
-        return collect($options)->prepend('Root', 0)->all();
+        return collect($options)->prepend($rootText, 0)->all();
     }
 
     /**
@@ -244,12 +249,13 @@ trait ModelTree
      * @param array  $nodes
      * @param int    $parentId
      * @param string $prefix
+     * @param string $space
      *
      * @return array
      */
-    protected function buildSelectOptions(array $nodes = [], $parentId = 0, $prefix = '')
+    protected function buildSelectOptions(array $nodes = [], $parentId = 0, $prefix = '', $space = '&nbsp;')
     {
-        $prefix = $prefix ?: str_repeat('&nbsp;', 6);
+        $prefix = $prefix ?: '┝'.$space;
 
         $options = [];
 
@@ -257,10 +263,13 @@ trait ModelTree
             $nodes = $this->allNodes();
         }
 
-        foreach ($nodes as $node) {
-            $node[$this->titleColumn] = $prefix.'&nbsp;'.$node[$this->titleColumn];
+        foreach ($nodes as $index => $node) {
             if ($node[$this->parentColumn] == $parentId) {
-                $children = $this->buildSelectOptions($nodes, $node[$this->getKeyName()], $prefix.$prefix);
+                $node[$this->titleColumn] = $prefix.$space.$node[$this->titleColumn];
+
+                $childrenPrefix = str_replace('┝', str_repeat($space, 6), $prefix).'┝'.str_replace(['┝', $space], '', $prefix);
+
+                $children = $this->buildSelectOptions($nodes, $node[$this->getKeyName()], $childrenPrefix);
 
                 $options[$node[$this->getKeyName()]] = $node[$this->titleColumn];
 
@@ -302,7 +311,7 @@ trait ModelTree
 
                 Request::offsetUnset('_order');
 
-                static::tree()->saveOrder($order);
+                (new Tree(new static()))->saveOrder($order);
 
                 return false;
             }

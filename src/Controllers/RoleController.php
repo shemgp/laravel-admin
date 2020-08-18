@@ -2,78 +2,18 @@
 
 namespace Encore\Admin\Controllers;
 
-use Encore\Admin\Auth\Database\Permission;
-use Encore\Admin\Auth\Database\Role;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Layout\Content;
 use Encore\Admin\Show;
-use Illuminate\Routing\Controller;
 
-class RoleController extends Controller
+class RoleController extends AdminController
 {
-    use HasResourceActions;
-
     /**
-     * Index interface.
-     *
-     * @param Content $content
-     *
-     * @return Content
+     * {@inheritdoc}
      */
-    public function index(Content $content)
+    protected function title()
     {
-        return $content
-            ->header(trans('admin.roles'))
-            ->description(trans('admin.list'))
-            ->body($this->grid()->render());
-    }
-
-    /**
-     * Show interface.
-     *
-     * @param mixed   $id
-     * @param Content $content
-     *
-     * @return Content
-     */
-    public function show($id, Content $content)
-    {
-        return $content
-            ->header(trans('admin.roles'))
-            ->description(trans('admin.detail'))
-            ->body($this->detail($id));
-    }
-
-    /**
-     * Edit interface.
-     *
-     * @param mixed   $id
-     * @param Content $content
-     *
-     * @return Content
-     */
-    public function edit($id, Content $content)
-    {
-        return $content
-            ->header(trans('admin.roles'))
-            ->description(trans('admin.edit'))
-            ->body($this->form()->edit($id));
-    }
-
-    /**
-     * Create interface.
-     *
-     * @param Content $content
-     *
-     * @return Content
-     */
-    public function create(Content $content)
-    {
-        return $content
-            ->header(trans('admin.roles'))
-            ->description(trans('admin.create'))
-            ->body($this->form());
+        return trans('admin.roles');
     }
 
     /**
@@ -83,16 +23,18 @@ class RoleController extends Controller
      */
     protected function grid()
     {
-        $grid = new Grid(new Role());
+        $roleModel = config('admin.database.roles_model');
 
-        $grid->id('ID')->sortable();
-        $grid->slug(trans('admin.slug'));
-        $grid->name(trans('admin.name'));
+        $grid = new Grid(new $roleModel());
 
-        $grid->permissions(trans('admin.permission'))->pluck('name')->label();
+        $grid->column('id', 'ID')->sortable();
+        $grid->column('slug', trans('admin.slug'));
+        $grid->column('name', trans('admin.name'));
 
-        $grid->created_at(trans('admin.created_at'));
-        $grid->updated_at(trans('admin.updated_at'));
+        $grid->column('permissions', trans('admin.permission'))->pluck('name')->label();
+
+        $grid->column('created_at', trans('admin.created_at'));
+        $grid->column('updated_at', trans('admin.updated_at'));
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             if ($actions->row->slug == 'administrator') {
@@ -118,16 +60,18 @@ class RoleController extends Controller
      */
     protected function detail($id)
     {
-        $show = new Show(Role::findOrFail($id));
+        $roleModel = config('admin.database.roles_model');
 
-        $show->id('ID');
-        $show->slug(trans('admin.slug'));
-        $show->name(trans('admin.name'));
-        $show->permissions(trans('admin.permissions'))->as(function ($permission) {
+        $show = new Show($roleModel::findOrFail($id));
+
+        $show->field('id', 'ID');
+        $show->field('slug', trans('admin.slug'));
+        $show->field('name', trans('admin.name'));
+        $show->field('permissions', trans('admin.permissions'))->as(function ($permission) {
             return $permission->pluck('name');
         })->label();
-        $show->created_at(trans('admin.created_at'));
-        $show->updated_at(trans('admin.updated_at'));
+        $show->field('created_at', trans('admin.created_at'));
+        $show->field('updated_at', trans('admin.updated_at'));
 
         return $show;
     }
@@ -139,13 +83,16 @@ class RoleController extends Controller
      */
     public function form()
     {
-        $form = new Form(new Role());
+        $permissionModel = config('admin.database.permissions_model');
+        $roleModel = config('admin.database.roles_model');
+
+        $form = new Form(new $roleModel());
 
         $form->display('id', 'ID');
 
         $form->text('slug', trans('admin.slug'))->rules('required');
         $form->text('name', trans('admin.name'))->rules('required');
-        $form->listbox('permissions', trans('admin.permissions'))->options(Permission::all()->pluck('name', 'id'));
+        $form->listbox('permissions', trans('admin.permissions'))->options($permissionModel::all()->pluck('name', 'id'));
 
         $form->display('created_at', trans('admin.created_at'));
         $form->display('updated_at', trans('admin.updated_at'));

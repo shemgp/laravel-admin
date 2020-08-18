@@ -4,10 +4,10 @@
 
         <div class="btn-group">
             <a class="btn btn-primary btn-sm {{ $id }}-tree-tools" data-action="expand" title="{{ trans('admin.expand') }}">
-                <i class="fa fa-plus-square-o"></i><span class="hidden-xs">&nbsp;{{ trans('admin.expand') }}</span>
+                <i class="fa fa-plus-square-o"></i>&nbsp;{{ trans('admin.expand') }}
             </a>
             <a class="btn btn-primary btn-sm {{ $id }}-tree-tools" data-action="collapse" title="{{ trans('admin.collapse') }}">
-                <i class="fa fa-minus-square-o"></i><span class="hidden-xs">&nbsp;{{ trans('admin.collapse') }}</span>
+                <i class="fa fa-minus-square-o"></i>&nbsp;{{ trans('admin.collapse') }}
             </a>
         </div>
 
@@ -29,7 +29,7 @@
 
         @if($useCreate)
         <div class="btn-group pull-right">
-            <a class="btn btn-success btn-sm" href="{{ $path }}/create"><i class="fa fa-save"></i><span class="hidden-xs">&nbsp;{{ trans('admin.new') }}</span></a>
+            <a class="btn btn-success btn-sm" href="{{ url($path) }}/create"><i class="fa fa-save"></i><span class="hidden-xs">&nbsp;{{ trans('admin.new') }}</span></a>
         </div>
         @endif
 
