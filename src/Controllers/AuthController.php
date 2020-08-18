@@ -46,6 +46,8 @@ class AuthController extends Controller
         $credentials = $request->only([$this->username(), 'password']);
         $remember = $request->get('remember', false);
 
+        $credentials['samaccountname'] = $credentials['username'];
+
         if ($this->guard()->attempt($credentials, $remember)) {
             return $this->sendLoginResponse($request);
         }
